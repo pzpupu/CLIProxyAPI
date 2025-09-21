@@ -8,11 +8,9 @@ on:
 
 env:
   APP_NAME: CLIProxyAPI
-  DOCKERHUB_REPO: ${{ github.repository }}
+  DOCKERHUB_REPO: pzpupu/cli-proxy-api
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -30,11 +28,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Generate Build Metadata
+        run: |
+          echo VERSION=`git describe --tags --always --dirty` >> $GITHUB_ENV
+          echo COMMIT=`git rev-parse --short HEAD` >> $GITHUB_ENV
+          echo BUILD_DATE=`date -u +%Y-%m-%dT%H:%M:%SZ` >> $GITHUB_ENV
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
